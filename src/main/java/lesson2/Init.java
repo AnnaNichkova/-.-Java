@@ -23,14 +23,40 @@ public class Init {
 
     public static void main(String[] args) throws IOException, ParseException, org.apache.commons.cli.ParseException {
         CommandLine line = parseArgs(args);
+        System.setProperty("browsername", line.getOptionValue("browsername"));
+        if (line.getOptionValue("browsername").equals("Chrome") | line.getOptionValue("browsername").equals("Firefox")) {
+            System.setProperty("headless", "false");
+        }
         Init init = new Init();
+        init.startDriver();
+        Tests tests = new Tests();
+        tests.test1();
+        switch (System.getProperty("testname")) {
+            case "test1":
+                tests.test1();
+            case "test2":
+                tests.test2();
+            default:
+                tests.test1();
+        }
     }
 
-    private Init() throws IOException {
+    private void startDriver() {
+    }
+
+    public Init() throws IOException {
         props.load(new FileInputStream("src/main/resources/configuration/app.properties"));
-        startChromeDriver();
-        startIEDriver();
-        startFirefoxDriver();
+        switch (System.getProperty("browsername")) {
+            case "Chrome":
+                startChromeDriver();
+            case "Firefox":
+                startFirefoxDriver();
+            case "IE11":
+                startIEDriver();
+            default:
+                startChromeDriver();
+        }
+
     }
 
     private void startChromeDriver() {
@@ -59,15 +85,14 @@ public class Init {
 
     private void startFirefoxDriver() {
         System.setProperty("webdriver.gecko.driver", "src/main/resources/drivers/geckodriver.exe");
-        Map<String, Object> prefsFirefox = new HashMap<>();
-        prefsFirefox.put("profile.default_content_settings.popups", 0);
-        prefsFirefox.put("download.default_directory_firefox", props.getProperty("download.default_directory_firefox"));
 
         ProfilesIni profile = new ProfilesIni();
-        FirefoxProfile myAutomatizationProjectProfile = profile.getProfile("selenium");
+        FirefoxProfile myAutomatizationProjectProfile = profile.getProfile("HomeWork");
         FirefoxOptions options = new FirefoxOptions();
+        myAutomatizationProjectProfile.setPreference("browser.download.dir", "D:\\firefox_download");
         options.setProfile(myAutomatizationProjectProfile);
         driver = new FirefoxDriver(options);
+        driver.navigate().to("https://www.cryptopro.ru/sites/default/files/products/cades/demopage/cades_bes_sample.html");
     }
 
     private void startIEDriver() {
@@ -75,17 +100,33 @@ public class Init {
         driver = new InternetExplorerDriver();
     }
 
-    private static org.apache.commons.cli.CommandLine parseArgs (String[] args) throws ParseException, org.apache.commons.cli.ParseException {
-        org.apache.commons.cli.Options options = new Options();
-        Option driver = org.apache.commons.cli.Option.builder("headless")
-                .longOpt("headless")
-                .required(true)
+    private static CommandLine parseArgs (String[] args) throws ParseException, org.apache.commons.cli.ParseException {
+        Options options = new Options();
+        Option browserName = Option.builder("browsername")
+                .longOpt("browsername")
+                .required(false)
                 .hasArg()
-                .desc("invisible mode")
+                .desc("browser name")
                 .build();
-        options.addOption(driver);
+
+        Option testName = Option.builder("testname")
+                .longOpt("testname")
+                .required(false)
+                .hasArg()
+                .desc("test name")
+                .build();
+        options.addOption(browserName);
+        options.addOption(testName);
         CommandLineParser parser = new DefaultParser();
         System.out.println(args);
         return parser.parse(options, args);
+    }
+
+    public WebDriver getDriver() {
+        return driver;
+    }
+
+    public void setDriver(WebDriver driver) {
+        this.driver = driver;
     }
 }
