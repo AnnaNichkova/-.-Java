@@ -1,4 +1,4 @@
-package lesson1;
+package autotests;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package lesson2;
+package lessons;
 
 import org.apache.commons.cli.*;
 import org.openqa.selenium.WebDriver;
@@ -16,6 +16,7 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class Init {
     Properties props = new Properties();
@@ -31,17 +32,22 @@ public class Init {
         init.startDriver();
         Tests tests = new Tests();
         tests.test1();
-        switch (System.getProperty("testname")) {
-            case "test1":
-                tests.test1();
-            case "test2":
-                tests.test2();
-            default:
-                tests.test1();
-        }
+//        switch (System.getProperty("testname")) {
+//            case "test1":
+//                tests.test1();
+//            case "test2":
+//                tests.test2();
+//            default:
+//                tests.test1();
+//        }
+        setImplicitTimeouts();
+        //runTests(line);
     }
 
-    private void startDriver() {
+
+    private void startDriver() throws IOException {
+        props.load(new FileInputStream("src/main/resources/configuration"));
+        startChromeDriver();
     }
 
     public Init() throws IOException {
@@ -122,11 +128,23 @@ public class Init {
         return parser.parse(options, args);
     }
 
-    public WebDriver getDriver() {
+    public static WebDriver getDriver() {
         return driver;
     }
 
     public void setDriver(WebDriver driver) {
         this.driver = driver;
+    }
+
+    private static void setImplicitTimeouts() {
+        //Неявные ожидания - Implicit Waits - конфигурируют экземпляр WebDriver делать
+        // многократные попытки найти элемент (элементы) на странице в течении
+        // заданного периода времени, если элемент не найден сразу.
+        // Tолько по истечении этого времени WebDriver бросит ElementNotFoundException.
+        driver.manage().timeouts().implicitlyWait(Waits.big_wait, TimeUnit.SECONDS);
+        //неявное ожидание загрузки страницы
+        driver.manage().timeouts().pageLoadTimeout(Waits.big_wait, TimeUnit.SECONDS);
+        //неявное ожидание отработки скриптов
+        driver.manage().timeouts().setScriptTimeout(Waits.big_wait, TimeUnit.SECONDS);
     }
 }
