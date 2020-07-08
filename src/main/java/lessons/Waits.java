@@ -24,7 +24,7 @@ public class Waits {
 
     public void staticWait(double pollingTime) {
         try {
-            Thread.sleep((int) (pollingTime*1000));
+            Thread.sleep((int) (pollingTime * 1000));
         } catch (InterruptedException interrupt) {
             System.out.println("проблема с потоком");
         }
@@ -33,14 +33,14 @@ public class Waits {
     public List<WebElement> waitAndGetWebElementsLite(String xpath, int timeout, double pollingTime) {
         List<WebElement> webElements = new ArrayList<>();
         long startTime = Now();
-        while((Now() - startTime)/1000<timeout) {
+        while ((Now() - startTime) / 1000 < timeout) {
             try {
                 webElements = Init.getDriver().findElements(By.xpath(xpath));
             } catch (InvalidSelectorException e) {
                 System.out.println("некорректный синтаксис локатора");
                 throw e;
             }
-            if((!webElements.isEmpty()) && webElements.get(0).isEnabled()) {
+            if ((!webElements.isEmpty()) && webElements.get(0).isEnabled()) {
                 return webElements;
             }
             staticWait(pollingTime);
@@ -52,16 +52,16 @@ public class Waits {
     public void waitNotElements(String xpath, int timeout, double pollingTime, int startWaitForPresent) {
         List<WebElement> elements = null;
         List<WebElement> invisibleElements = null;
-        if(waitAndGetWebElementsLite(xpath, startWaitForPresent, pollingTime).isEmpty()) {
+        if (waitAndGetWebElementsLite(xpath, startWaitForPresent, pollingTime).isEmpty()) {
             System.out.println("Элементы " + xpath + " не появились");
             return;
         }
         long startTime = Now();
-        while(!((Now() - startTime)/1000<timeout)) {
+        while (!((Now() - startTime) / 1000 < timeout)) {
             staticWait(pollingTime);
             elements = Init.getDriver().findElements(By.xpath(xpath));
             invisibleElements = elements.stream().filter(elem -> !elem.isDisplayed()).collect(Collectors.toList());
-            if(elements.isEmpty() || (elements.size() == invisibleElements.size())) {
+            if (elements.isEmpty() || (elements.size() == invisibleElements.size())) {
                 break;
             }
         }
@@ -78,3 +78,4 @@ public class Waits {
             staticWait(polling_time);
         }
     }
+}

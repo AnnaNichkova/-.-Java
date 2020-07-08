@@ -31,7 +31,7 @@ public class Init {
         Init init = new Init();
         init.startDriver();
         Tests tests = new Tests();
-        tests.test1();
+        //tests.test1();
 //        switch (System.getProperty("testname")) {
 //            case "test1":
 //                tests.test1();
