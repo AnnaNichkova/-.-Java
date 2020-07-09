@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class Init {
-    Properties props = new Properties();
+    public Properties props = new Properties();
     private static WebDriver driver;
 
     public static void main(String[] args) throws IOException, ParseException, org.apache.commons.cli.ParseException {

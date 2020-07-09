@@ -66,6 +66,16 @@
             <artifactId>commons-cli</artifactId>
             <version>1.4</version>
         </dependency>
+        <dependency>
+            <groupId>ru.yandex.qatools.htmlelements</groupId>
+            <artifactId>htmlelements-java</artifactId>
+            <version>1.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.sbtqa.tag</groupId>
+            <artifactId>datajack</artifactId>
+            <version>1.4.0</version>
+        </dependency>
     </dependencies>
 
     <build>

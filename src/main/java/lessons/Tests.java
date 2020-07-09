@@ -1,11 +1,15 @@
 package lessons;
 
+import lessons.actions.Clicks;
+import lessons.actions.DeepLinks;
+import lessons.pages.LoginPage;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import ru.sbtqa.tag.datajack.Stash;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,37 +23,59 @@ public class Tests {
     Waits waits = new Waits();
     Locators locators = new Locators();
     Init init = new Init();
+    Clicks clicks = new Clicks();
 
     public Tests() throws IOException {
     }
 
     public void test1 () throws Exception{
         init.getDriver().navigate().to("https://geekbrains.ru/");
-        WebElement enterButton = init.getDriver().findElement(By.xpath(new Locators().enterButton));
-        waits.wait.until(ExpectedConditions.elementToBeClickable(By.xpath(new Locators().enterButton)));
-        click(enterButton);
+//        WebElement enterButton = init.getDriver().findElement(By.xpath(new Locators().enterButton));
+//        waits.wait.until(ExpectedConditions.elementToBeClickable(By.xpath(new Locators().enterButton)));
+//        clicks.click(enterButton);
         //init.getDriver().findElement(By.xpath(new Locators().enterButton)).click();
-        waits.waitForPageToLoad();
+      //  waits.waitForPageToLoad();
+
+        //Положим хранилище логина от сайта гикбрейнс
+        Stash.put("username",init.props.getProperty("geekbrains.login"));
+        //Аналогично пароль
+        Stash.put("password",init.props.getProperty("geekbrains.password"));
+
+        DeepLinks.Login();
+        Assert.assertTrue(Stash.getValue("значение для проверки").equals("Курсы"));
+
+        //Добавим ожидание загрузки страницы
+        //waits.waitForPageToLoad();
 
         //Запомним логин и пароль
         //Логин и пароль заданы в properties files
-        getWebElement(locators.loginEmail).sendKeys(init.props.getProperty("geekbrains.login"));
-        getWebElement(locators.loginPassword).sendKeys(init.props.getProperty("geekbrains.password"));
+        //getWebElement(locators.loginEmail).sendKeys(init.props.getProperty("geekbrains.login"));
+        //getWebElement(locators.loginPassword).sendKeys(init.props.getProperty("geekbrains.password"));
 
         //Аналогично делаем нажатие на кнопку "Войти"
-        click(getWebElement(locators.loginEnterButton));
+        //click(getWebElement(locators.loginEnterButton));
+
+        //Инициализируем LoginPage
+        LoginPage loginPage = new LoginPage();
+
+        //Вводим логин и пароль с помощью Page Object
+        //loginPage.loginEmail.sendKeys();
+        //loginPage.loginPassword.sendKeys();
+
+        //Аналогично с кнопкой "Войти"
+        clicks.click(loginPage.loginEnterButton);
 
         //Добавим ожидание загрузки страницы
         waits.waitForPageToLoad();
 
         //Добавим нажатие на иконку курсов
-        click(getWebElement(locators.coursesLink));
+        clicks.click(loginPage.navigationBlock.courses);
 
         //Добавим ожидание загрузки страницы
         waits.waitForPageToLoad();
 
         //Добавляем ссылку на профессию тестировщик
-        click(getWebElement(locators.qaEngineerLink));
+        clicks.click(getWebElement(locators.qaEngineerLink));
 
         //Добавим ожидание загрузки страницы
         waits.waitForPageToLoad();
@@ -65,7 +91,7 @@ public class Tests {
         executor.executeScript("arguments[0].scrollIntoView(); ", program);
 
         //Добавляем ссылку на полную программу
-        click(getWebElement(locators.fullProgram));
+        clicks.click(getWebElement(locators.fullProgram));
 
         //Добавим ожидание загрузки страницы
         waits.waitForPageToLoad();
@@ -98,27 +124,20 @@ public class Tests {
 //
 //    }
 
-    //Реализация клика
-    public void click (WebElement element) throws InterruptedException {
-        Actions actions = new Actions(Init.getDriver());
-        JavascriptExecutor executor = (JavascriptExecutor)Init.getDriver();
-        boolean isClicked = false;
-        long startTime = new Waits().Now();
-        while (((new Waits().Now() - startTime)/1000)<Waits.medium_wait) {
-            try {
-                Assert.assertTrue(element.isDisplayed());
-                actions.moveToElement(element).build().perform();
-                executor.executeScript("arguments[0].scrollIntoView(); ", element);
-                executor.executeScript("arguments[0].focus(); ", element);
-                executor.executeScript("arguments[0].click(); ", element);
-                isClicked = true;
-                break;
-            } catch (Exception e) {
-                LOGGER.info ("Клик не отрабатывает с первого раза - делаю повторный клик");
+    public void switchToFrame() throws InterruptedException {
+        JavascriptExecutor jsExecutor = (JavascriptExecutor) init.getDriver();
+        if (FrameToSwitch != null) {
+            long startTime = new Waits().Now();
+            while (((new Waits().Now() - startTime) / 1000) < Waits.medium_wait) {
+                init.getDriver().switchTo().defaultContent();
+                Thread.sleep(500);
+                init.getDriver().switchTo().frame(FrameToSwitch);
+                if (jsExecutor.executeScript("return self.name").equals(FrameToSwitch)) {
+                    break;
+                }
             }
-            Thread.sleep(500);
         }
-        Assert.assertTrue("Не произошло клика", isClicked);
+        Assert.assertTrue(jsExecutor.executeScript("return self.name").equals(FrameToSwitch));
     }
 
     private WebElement getFirstOneCellByValueFromTable(String columnName, String value) throws Exception {
