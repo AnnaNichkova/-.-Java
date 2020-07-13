@@ -118,12 +118,13 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>Init</mainClass>
+                            <mainClass>lessons.Init</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <outputDirectory>C:\Users\Анна\Desktop\GeekBrains\Инженер по автоматизированному тестированию ПО\Автоматизация тестирования Java\-.-Java.git</outputDirectory>
                 </configuration>
             </plugin>
 
