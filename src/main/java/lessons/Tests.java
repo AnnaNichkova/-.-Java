@@ -1,9 +1,12 @@
 package lessons;
 
+import io.qameta.allure.Step;
 import lessons.actions.Clicks;
 import lessons.actions.DeepLinks;
+import lessons.actions.GetElements;
 import lessons.pages.LoginPage;
 import org.junit.Assert;
+import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
@@ -16,18 +19,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.sun.xml.internal.ws.spi.db.BindingContextFactory.LOGGER;
+import static lessons.actions.DeepLinks.checkReferralLink;
 
 public class Tests {
-
-    String FrameToSwitch;
-    Waits waits = new Waits();
     Locators locators = new Locators();
     Init init = new Init();
-    Clicks clicks = new Clicks();
+    static Clicks clicks;
+
+    static lessons.Waits waits = new Waits();
+    static GetElements getE = new GetElements();
 
     public Tests() throws IOException {
     }
 
+    @Test
     public void test1 () throws Exception{
         init.getDriver().navigate().to("https://geekbrains.ru/");
 //        WebElement enterButton = init.getDriver().findElement(By.xpath(new Locators().enterButton));
@@ -41,8 +46,8 @@ public class Tests {
         //Аналогично пароль
         Stash.put("password",init.props.getProperty("geekbrains.password"));
 
-        DeepLinks.Login();
-        Assert.assertTrue(Stash.getValue("значение для проверки").equals("Курсы"));
+        Login();
+        checkCoursesVal();
 
         //Добавим ожидание загрузки страницы
         //waits.waitForPageToLoad();
@@ -56,6 +61,34 @@ public class Tests {
         //click(getWebElement(locators.loginEnterButton));
 
         //Инициализируем LoginPage
+        checkSlotsCount();
+        WebElement program = navigateToFullProgramm();
+
+        //Реализация переноса кнопки обратного звонка
+        WebElement callButton = getWebElement(locators.callBackButtonId);
+        Actions actions = new Actions(init.getDriver());
+        actions.dragAndDrop(callButton, program).perform();
+    }
+
+    @Step
+    private WebElement navigateToFullProgramm() throws InterruptedException {
+        //Реализация просмотра полной программы
+        WebElement program = getWebElement(locators.programSizeSubtitle);
+
+        //Чтобы проскролить в коде до элемента programSizeSubtitle, копируем из метода ниже реализацию scrollIntoView
+        JavascriptExecutor executor = (JavascriptExecutor) Init.getDriver();
+        executor.executeScript("arguments[0].scrollIntoView(); ", program);
+
+        //Добавляем ссылку на полную программу
+        clicks.click(getWebElement(locators.fullProgram));
+
+        //Добавим ожидание загрузки страницы
+        waits.waitForPageToLoad();
+        return program;
+    }
+
+    @Step
+    private void checkSlotsCount() throws IOException, InterruptedException {
         LoginPage loginPage = new LoginPage();
 
         //Вводим логин и пароль с помощью Page Object
@@ -82,29 +115,52 @@ public class Tests {
 
         //Проверка количества свободных слотов
         String emptySlots = getWebElement(locators.slotsCount).getText();
+    }
 
-        //Реализация просмотра полной программы
-        WebElement program = getWebElement(locators.programSizeSubtitle);
+    @Step
+    private void checkCoursesVal() {
+        Assert.assertTrue(Stash.getValue("значение для проверки").equals("Курсы"));
+    }
 
-        //Чтобы проскролить в коде до элемента programSizeSubtitle, копируем из метода ниже реализацию scrollIntoView
-        JavascriptExecutor executor = (JavascriptExecutor)Init.getDriver();
-        executor.executeScript("arguments[0].scrollIntoView(); ", program);
+    @Test
+    public void test2() throws InterruptedException, IOException {
+        Stash.put("username",init.props.getProperty("geekbrains.login"));
+        Stash.put("password",init.props.getProperty("geekbrains.password"));
+        Login();
+        checkReferralLink("Тестирование", "http://geekbrains.ru/go/8bAkt6");
 
-        //Добавляем ссылку на полную программу
-        clicks.click(getWebElement(locators.fullProgram));
-
-        //Добавим ожидание загрузки страницы
-        waits.waitForPageToLoad();
-
-        //Реализация переноса кнопки обратного звонка
-        WebElement callButton = getWebElement(locators.callBackButtonId);
-        Actions actions = new Actions(init.getDriver());
-        actions.dragAndDrop(callButton, program).perform();
     }
 
         //Найдем элемент с помощью метода waitAndGetWebElementsLite
     private WebElement getWebElement(String xpath) {
         return waits.waitAndGetWebElementsLite(xpath, Waits.medium_wait, Waits.polling_time).get(0);
+    }
+
+    @Step
+    public static void Login() throws InterruptedException, IOException {
+        Locators locators = new Locators();
+        clicks.click(getE.getWebElement(locators.enterButton));
+        waits.waitForPageToLoad();
+        getE.getWebElement(locators.loginEmail).sendKeys(Stash.getValue("username").toString());
+        getE.getWebElement(locators.loginPassword).sendKeys(Stash.getValue("password"));
+        clicks.click(getE.getWebElement(locators.loginEnterButton));
+        waits.waitForPageToLoad();
+        String valueToCheck = getE.getWebElement(locators.coursesLink).getText();
+        Stash.put("значение для проверки", valueToCheck);
+    }
+
+    @Step
+    public static void checkReferralLink (String name, String Link) throws InterruptedException {
+        waits.waitForPageToLoad();
+        Locators locators = new Locators();
+        clicks.click(getE.getWebElement(locators.topMenu));
+        waits.waitForPageToLoad();
+        clicks.click(getE.getWebElement(locators.referrals));
+        waits.waitForPageToLoad();
+        clicks.click(getE.getWebElement(locators.referralsDropdown));
+        clicks.click(getE.getWebElement("//*[text()='" + name + "']"));
+        String ref_link = getE.getWebElement(locators.refLink).getText();
+        Assert.assertEquals(Link, ref_link);
     }
 
 //    //Проверка таблицы со статистикой игроков

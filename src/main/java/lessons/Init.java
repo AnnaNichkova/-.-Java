@@ -9,6 +9,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.testng.TestNG;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -146,5 +147,11 @@ public class Init {
         driver.manage().timeouts().pageLoadTimeout(Waits.big_wait, TimeUnit.SECONDS);
         //неявное ожидание отработки скриптов
         driver.manage().timeouts().setScriptTimeout(Waits.big_wait, TimeUnit.SECONDS);
+    }
+
+    private static void runTests(CommandLine line) throws Exception {
+        TestNG testNG = new TestNG();
+        testNG.setTestClasses(new Class[]{Tests.class});
+        testNG.run();
     }
 }
